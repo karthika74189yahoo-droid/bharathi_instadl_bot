@@ -20,6 +20,8 @@ Put the BotFather token in `BOT_TOKEN`, save the file, then send a public Instag
 
 The bot tries `yt-dlp` first for videos, then automatically uses `gallery-dl` for Instagram pictures and carousels.
 
-If Instagram reports `No video formats found` for a post that opens normally in your browser, set `YTDLP_BROWSER=chrome` in `.env` (or use `edge` or `firefox`). This lets `yt-dlp` reuse your browser session to access the public media. Keep the browser profile logged into Instagram and close the browser before starting the bot if cookie access fails.
+If Instagram reports `No video formats found` for a post that opens normally in your browser, set `YTDLP_BROWSER=chrome` in `.env` (or use `edge` or `firefox`). This works only when that browser and profile are installed on the same machine as the bot.
+
+For Railway, export a Netscape-format cookie file from a browser where you are logged into Instagram, base64-encode it, and set the result as `YTDLP_COOKIES_BASE64`. Do not set `YTDLP_BROWSER` on Railway unless you have also installed and configured that browser inside the service. Cookie exports are sensitive; keep the Railway variable private and rotate it if exposed.
 
 Telegram bots have upload limits. The default limit here is 49 MB; change `MAX_FILE_SIZE_MB` only if your Telegram account and bot API support a larger upload.

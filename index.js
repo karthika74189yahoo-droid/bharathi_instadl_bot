@@ -15,6 +15,7 @@ const gallerydl = process.env.GALLERY_DL_PATH ||
   (fs.existsSync(defaultGalleryDl) ? defaultGalleryDl : 'gallery-dl');
 const browser = process.env.YTDLP_BROWSER?.trim() ||
   (process.platform === 'win32' ? 'chrome' : undefined);
+const cookiesFile = process.env.YTDLP_COOKIES_FILE?.trim() || createCookiesFile();
 const maxFileSize = Number(process.env.MAX_FILE_SIZE_MB || 49) * 1024 * 1024;
 
 if (!token) {
@@ -23,6 +24,23 @@ if (!token) {
 }
 
 const bot = new Telegraf(token);
+
+function createCookiesFile() {
+  const encodedCookies = process.env.YTDLP_COOKIES_BASE64?.trim();
+  if (!encodedCookies) return undefined;
+
+  const cookiesPath = path.join(os.tmpdir(), 'instagram-cookies.txt');
+  fs.writeFileSync(cookiesPath, Buffer.from(encodedCookies, 'base64'));
+  return cookiesPath;
+}
+
+function addCookieArguments(args, browserFlagIndex) {
+  if (cookiesFile) {
+    args.splice(browserFlagIndex, 0, '--cookies', cookiesFile);
+  } else if (browser) {
+    args.splice(browserFlagIndex, 0, '--cookies-from-browser', browser);
+  }
+}
 
 function isInstagramUrl(value) {
   try {
@@ -46,9 +64,7 @@ function downloadInstagram(url, outputDir) {
       url
     ];
 
-    if (browser) {
-      args.splice(1, 0, '--cookies-from-browser', browser);
-    }
+    addCookieArguments(args, 1);
 
     const process = spawn(ytdlp, args, { windowsHide: true });
 
@@ -85,9 +101,7 @@ function listMediaFiles(directory) {
 function downloadWithGalleryDl(url, outputDir) {
   return new Promise((resolve, reject) => {
     const args = ['--directory', outputDir, '--no-mtime', url];
-    if (browser) {
-      args.splice(2, 0, '--cookies-from-browser', browser);
-    }
+    addCookieArguments(args, 2);
 
     const process = spawn(gallerydl, args, { windowsHide: true });
     let errorOutput = '';
@@ -136,7 +150,8 @@ bot.on('text', async (ctx) => {
     console.error(error);
     await ctx.reply(
       'Download failed. Instagram may be blocking anonymous requests. ' +
-      'Close Chrome and restart the bot, or set YTDLP_BROWSER=edge/firefox in .env.'
+      'On Railway, provide an exported Netscape cookie file with YTDLP_COOKIES_BASE64. ' +
+      'YTDLP_BROWSER only works when that browser profile exists on the server.'
     );
   } finally {
     fs.rmSync(workDir, { recursive: true, force: true });
