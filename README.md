@@ -20,6 +20,8 @@ Put the BotFather token in `BOT_TOKEN`, save the file, then send a public Instag
 
 The bot tries `yt-dlp` first for videos, then automatically uses `gallery-dl` for Instagram pictures and carousels.
 
+For Railway, the included `Dockerfile` installs `yt-dlp`, `gallery-dl`, and FFmpeg automatically. Railway must be configured to deploy this repository with Dockerfile detection enabled, or the service can be redeployed after pushing the file. The `spawn yt-dlp ENOENT` error means the old Node-only deployment was used and the image did not contain yt-dlp.
+
 If Instagram reports `No video formats found` for a post that opens normally in your browser, set `YTDLP_BROWSER=chrome` in `.env` (or use `edge` or `firefox`). This works only when that browser and profile are installed on the same machine as the bot.
 
 For Railway, export a Netscape-format cookie file from a browser where you are logged into Instagram, base64-encode it, and set the result as `YTDLP_COOKIES_BASE64`. Do not set `YTDLP_BROWSER` on Railway unless you have also installed and configured that browser inside the service. Cookie exports are sensitive; keep the Railway variable private and rotate it if exposed.
